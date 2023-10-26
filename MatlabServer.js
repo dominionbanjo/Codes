@@ -94,6 +94,9 @@ app.get("/viewVoltageData", (req, res) => {
   res.json(voltageData);
 });
 
+app.get("/", (req, res) => {
+  res.status(200).send({ message: "good" });
+});
 // WebSocket server to handle real-time updates
 wss.on("connection", (ws) => {
   console.log("WebSocket client connected");
