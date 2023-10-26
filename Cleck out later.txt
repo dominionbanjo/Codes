@@ -1,0 +1,134 @@
+const express = require("express");
+const net = require("net");
+const http = require("http");
+const WebSocket = require("ws");
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+// Initialize arrays to store voltage and current data
+const voltageData = [];
+const currentData = [];
+let voltageIdCounter = 0;
+let currentIdCounter = 0;
+
+// Create a TCP server for voltage data using the 'net' module
+const voltageServer = net.createServer((socket) => {
+  console.log("Voltage client has connected.");
+
+  // Buffer to accumulate incoming data
+  let buffer = Buffer.from([]);
+  let lastProcessedTime = 0;
+
+  socket.on("data", (data) => {
+    // Append incoming data to the buffer
+    buffer = Buffer.concat([buffer, data]);
+
+    // Check if the buffer contains at least 3 values
+    while (buffer.length >= 3 * 8) {
+      const currentTime = new Date().getTime();
+
+      if (currentTime - lastProcessedTime >= 1000) {
+        const value1 = buffer.readDoubleLE(0);
+        const value2 = buffer.readDoubleLE(8);
+        const value3 = buffer.readDoubleLE(16);
+
+        console.log("Received voltage data:", { value1, value2, value3 });
+
+        if (value1 !== 0 || value2 !== 0 || value3 !== 0) {
+          voltageIdCounter++;
+          const currentTime = new Date();
+          const formattedTime = currentTime.toLocaleString("en-US", {
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+          });
+          voltageData.push({
+            id: voltageIdCounter,
+            time: formattedTime,
+            value1,
+            value2,
+            value3,
+          });
+
+          const newData = voltageData[voltageData.length - 1];
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(newData));
+            }
+          });
+        }
+
+        lastProcessedTime = currentTime;
+      }
+
+      buffer = buffer.slice(24);
+    }
+  });
+
+  socket.on("end", () => {
+    console.log("Voltage client disconnected.");
+  });
+
+  socket.on("error", (err) => {
+    console.error("Voltage client error:", err);
+  });
+});
+
+// Create a TCP server for current data using the 'net' module
+const currentServer = net.createServer((socket) => {
+  console.log("Current client has connected.");
+
+  // Buffer to accumulate incoming data
+  let buffer = Buffer.from([]);
+  let lastProcessedTime = 0;
+
+  socket.on("data", (data) => {
+    // Append incoming data to the buffer
+    buffer = Buffer.concat([buffer, data]);
+
+    // Handle the incoming current data in a similar manner to voltage data
+    // ...
+
+    // Modify the logic to handle current data
+    // ...
+  });
+
+  socket.on("end", () => {
+    console.log("Current client disconnected.");
+  });
+
+  socket.on("error", (err) => {
+    console.error("Current client error:", err);
+  });
+});
+
+// Start the TCP servers on specific ports
+const voltagePort = 12345;
+const currentPort = 12346;
+voltageServer.listen(voltagePort, () => {
+  console.log(`Voltage TCP server is listening on port ${voltagePort}`);
+});
+currentServer.listen(currentPort, () => {
+  console.log(`Current TCP server is listening on port ${currentPort}`);
+});
+
+// ...
+
+// Define routes to view the stored voltage and current data
+app.get("/viewVoltageData", (req, res) => {
+  res.json(voltageData);
+});
+
+app.get("/viewCurrentData", (req, res) => {
+  res.json(currentData);
+});
+
+// WebSocket server to handle real-time updates
+// ...
+
+// Serve WebSocket client HTML pages
+// ...
