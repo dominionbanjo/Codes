@@ -2,10 +2,12 @@ const express = require("express");
 const net = require("net");
 const http = require("http");
 const WebSocket = require("ws");
+const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+app.use(cors());
 // Initialize an array to store the data
 const voltageData = [];
 let idCounter = 0; // Initialize the ID counter
