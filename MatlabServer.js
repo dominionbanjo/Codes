@@ -103,6 +103,6 @@ wss.on("connection", (ws) => {
 });
 
 // Serve WebSocket client HTML page
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/websocket_client.html");
-});
+// app.get("/", (req, res) => {
+//   res.sendFile(__dirname + "/websocket_client.html");
+// });
