@@ -187,7 +187,7 @@ async function sendToWebSocketClients(data) {
 }
 
 // Start the TCP server on a specific port
-const tcpPort = 443;
+const tcpPort = 12345;
 tcpServer.listen(tcpPort, "0.0.0.0", () => {
   console.log(`TCP server is listening on port ${tcpPort}`);
 });
