@@ -80,7 +80,7 @@ const tcpServer = net.createServer((socket) => {
 });
 
 // Start the TCP server on a specific port
-const tcpPort = 12345;
+const tcpPort = 443;
 tcpServer.listen(tcpPort, "0.0.0.0", () => {
   console.log(`TCP server is listening on port ${tcpPort}`);
 });
